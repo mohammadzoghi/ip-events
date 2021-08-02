@@ -4,25 +4,20 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Set;
 
 @Setter
 @Getter
 public class NetworkEvents {
-    private int networkIp;
-    private Set<Integer> ips = new HashSet<>();
+    private int count = 0;
+    private Set<Long> ips = new HashSet<>();
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        NetworkEvents that = (NetworkEvents) o;
-        return getNetworkIp() == that.getNetworkIp();
+    public void add(long ip){
+        this.ips.add(ip);
+        this.count ++;
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(getNetworkIp());
+    public NetworkEvents(long ip){
+        this.add(ip);
     }
 }

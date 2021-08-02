@@ -14,7 +14,7 @@
 	<name>ip-events</name>
 	<description>Finding security threats based on network ip</description>
 	<properties>
-		<java.version>8</java.version>
+		<java.version>9</java.version>
 	</properties>
 	<dependencies>
 		<dependency>
