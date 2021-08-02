@@ -7,7 +7,10 @@ import com.mohammad.ipevents.util.IpUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @RequiredArgsConstructor
@@ -15,29 +18,27 @@ public class IpEventService {
 
     private final IpUtil ipUtil;
 
-    private Map<String, Map<Long, NetworkEvents>> allEvents = new HashMap<>();
+    private ConcurrentHashMap<String, ConcurrentHashMap<Long, NetworkEvents>> allEvents = new ConcurrentHashMap<>();
 
     public void addEvent(IpEvents.IpEvent event){
         long networkIp = ipUtil.getNetwork(event.getIp());
         if (allEvents.containsKey(event.getAppSha256())){
-            Map<Long, NetworkEvents> networkEventsMap  = allEvents.get(event.getAppSha256());
+            ConcurrentHashMap<Long, NetworkEvents> networkEventsMap  = allEvents.get(event.getAppSha256());
             if (networkEventsMap.containsKey(networkIp)){
                 NetworkEvents networkEvents = networkEventsMap.get(networkIp);
                 networkEvents.add(event.getIp());
             }else{
-                NetworkEvents networkEvents = new NetworkEvents(event.getIp());
-                networkEventsMap.put(networkIp, networkEvents);
+                networkEventsMap.put(networkIp, new NetworkEvents(event.getIp()));
             }
         }else{
-            NetworkEvents networkEvents = new NetworkEvents(event.getIp());
-            Map<Long, NetworkEvents> networkEventsMap = new HashMap<>();
-            networkEventsMap.put(networkIp, networkEvents);
+            ConcurrentHashMap<Long, NetworkEvents> networkEventsMap = new ConcurrentHashMap<>();
+            networkEventsMap.put(networkIp, new NetworkEvents(event.getIp()));
             allEvents.put(event.getAppSha256(), networkEventsMap);
         }
     }
 
     public void delete() {
-        allEvents = new HashMap<>();
+        allEvents = new ConcurrentHashMap<>();
     }
 
     public AppEvents getAppEvents(String appSha256){

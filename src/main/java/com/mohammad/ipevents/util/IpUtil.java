@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -12,10 +13,16 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class IpUtil {
     private final Environment env;
+    private long bitMask;
+
+    @PostConstruct
+    public void init(){
+        int mask = Integer.parseInt(env.getProperty("ip-events.mask") == null ? "28" : Objects.requireNonNull(env.getProperty("ip-events.mask")));
+        this.bitMask = Long.MAX_VALUE << (32 - mask);
+    }
 
     private long getBitMask(){
-        int mask = Integer.parseInt(env.getProperty("ip-events.mask") == null ? "28" : Objects.requireNonNull(env.getProperty("ip-events.mask")));
-         return Long.MAX_VALUE << (32 - mask);
+        return this.bitMask;
     }
 
     public Set<String> convertToStringIps(Set<Long> longIps){
