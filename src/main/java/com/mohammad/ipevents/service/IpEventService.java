@@ -4,7 +4,9 @@ import com.mohammad.ipevents.model.AppEvents;
 import com.mohammad.ipevents.model.IpEvents;
 import com.mohammad.ipevents.model.NetworkEvents;
 import com.mohammad.ipevents.util.IpUtil;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
@@ -13,6 +15,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
+@Getter
+@Setter
 @RequiredArgsConstructor
 public class IpEventService {
 
