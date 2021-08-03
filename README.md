@@ -12,3 +12,6 @@ Then navigate to target directory and run using
 Or clone it in your IDE and run the main method in IpEventsApplication class.
 
 The program runs on Spring Boot default port which is: 8080
+
+The app is running on: 
+```gentle-wildwood-78222.herokuapp.com``` port:```80```
