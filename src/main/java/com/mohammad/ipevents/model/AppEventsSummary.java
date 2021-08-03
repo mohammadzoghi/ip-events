@@ -9,11 +9,14 @@ import lombok.Setter;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * This is the response of get request specified int the question.
+ */
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class AppEvents {
+public class AppEventsSummary {
 
     private int count;
 

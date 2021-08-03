@@ -1,11 +1,11 @@
 package com.mohammad.ipevents.util;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.mock.env.MockEnvironment;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -16,20 +16,32 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * This class tests the IpUtil class. The expected values are created using reliable tools.
+ * This class tests the IpUtil class.
  */
-@SpringBootTest
 public class IpUtilTest {
 
-    @Autowired
-    private IpUtil ipUtil;
+    private static final long _54_45_72_142 = 908937358L;
+    private static final long _54_45_72_131 = 908937347L;
+    private static final long _21_101_201_155 = 358992283L;
+
+    private static final long _54_45_72_128 = 908937344L;
+    private static final long _21_101_201_144 = 358992272L;
+
+    private static IpUtil ipUtil;
+
+    @BeforeAll
+    static void createIpUtil(){
+        MockEnvironment env = new MockEnvironment();
+        env.setProperty("ip-events.mask", "28");
+        ipUtil = new IpUtil(env);
+    }
 
     @Test
     void convertToStringIpsTest(){
         Set<Long> ips = new HashSet<>();
-        ips.add(908937347L);
-        ips.add(908937358L);
-        ips.add(358992283L);
+        ips.add(_54_45_72_131);
+        ips.add(_54_45_72_142);
+        ips.add(_21_101_201_155);
         Set<String> ipStrings = ipUtil.convertToStringIps(ips);
 
         assertEquals(3, ipStrings.size());
@@ -47,9 +59,9 @@ public class IpUtilTest {
      */
     static Stream<Arguments> getIpAndNetwork(){
         return Stream.of(
-                Arguments.of(908937347L, 908937344L),
-                Arguments.of(908937358L, 908937344L),
-                Arguments.of(358992283L, 358992272L)
+                Arguments.of(_54_45_72_131, _54_45_72_128),
+                Arguments.of(_54_45_72_142 , _54_45_72_128),
+                Arguments.of(_21_101_201_155, _21_101_201_144)
         );
     }
 }

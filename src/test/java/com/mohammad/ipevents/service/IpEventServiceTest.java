@@ -1,58 +1,73 @@
 package com.mohammad.ipevents.service;
 
-import com.mohammad.ipevents.model.AppEvents;
+import com.mohammad.ipevents.model.AppEventsSummary;
 import com.mohammad.ipevents.model.IpEvents;
-import com.mohammad.ipevents.model.NetworkEvents;
+import com.mohammad.ipevents.util.IpUtil;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.mock.env.MockEnvironment;
 
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static com.mohammad.ipevents.model.IpEvents.IpEvent;
+import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
 public class IpEventServiceTest {
 
-    @Autowired
-    private IpEventService ipEventService;
+    private static final long _54_45_72_142 = 908937358L;
+    private static final long _54_45_72_131 = 908937347L;
+    private static final long _21_101_201_155 = 358992283L;
+
+    private static IpEventService ipEventService;
+
+    private static List<IpEvent> events;
+
+    @BeforeAll
+    static void populateEvents(){
+        IpEvent event1 = IpEvents.IpEvent.newBuilder()
+                .setIp(_54_45_72_142)
+                .setAppSha256("appKey-3876347").build();
+        IpEvent event2 = IpEvents.IpEvent.newBuilder()
+                .setIp(_54_45_72_131)
+                .setAppSha256("appKey-3876347").build();
+        IpEvent event3 = IpEvents.IpEvent.newBuilder()
+                .setIp(_21_101_201_155)
+                .setAppSha256("appKey-3876347").build();
+        events = new ArrayList<>(Arrays.asList(event1, event2, event3));
+    }
+
+    @BeforeAll
+    static void createIpEventsService(){
+        MockEnvironment env = new MockEnvironment();
+        env.setProperty("ip-events.mask", "28");
+        ipEventService = new IpEventService(new IpUtil(env));
+    }
+
+    @BeforeEach
+    void clearState(){
+        ipEventService.delete();
+        events.forEach(event -> ipEventService.addEvent(event));
+    }
 
     @Test
     void deleteTest(){
+        assertFalse(ipEventService.getAppEvents("appKey-3876347").getGoodIps().isEmpty());
+
         ipEventService.delete();
-        ipEventService.getAllEvents().put("app-id", new ConcurrentHashMap<>());
-        assertEquals(1, ipEventService.getAllEvents().size());
-        ipEventService.delete();
-        assertTrue(ipEventService.getAllEvents().isEmpty());
+
+        AppEventsSummary appEventsSummary = ipEventService.getAppEvents("appKey-3876347");
+        assertTrue(appEventsSummary.getGoodIps().isEmpty());
+        assertTrue(appEventsSummary.getBadIps().isEmpty());
+        assertEquals(0, appEventsSummary.getCount());
     }
 
     @Test
-    void addEventTest(){
-        ipEventService.delete();
-        IpEvents.IpEvent event = IpEvents.IpEvent.newBuilder()
-                .setIp(358992283L)
-                .setAppSha256("appKey-3876347").build();
-        ipEventService.addEvent(event);
-        assertTrue(ipEventService.getAllEvents().containsKey("appKey-3876347"));
-        assertTrue(ipEventService.getAllEvents().get("appKey-3876347").containsKey(358992272L));
-        assertTrue(ipEventService.getAllEvents().get("appKey-3876347").get(358992272L).getIps().contains(358992283L));
-    }
+    void getAppEventsTest(){
 
-    @Test
-    void getAppEvents(){
-        ipEventService.delete();
-        ConcurrentHashMap<String, ConcurrentHashMap<Long, NetworkEvents>> allEvents = ipEventService.getAllEvents();
-        NetworkEvents goodEvents = new NetworkEvents(908937347L);
-        goodEvents.add(908937358L);
-        NetworkEvents badEvents = new NetworkEvents(358992283L);
-        ConcurrentHashMap<Long, NetworkEvents> appEventsMap = new ConcurrentHashMap<>();
-        appEventsMap.put(908937344L, goodEvents);
-        appEventsMap.put(358992272L, badEvents);
-        allEvents.put("appKey-3876347", appEventsMap);
-
-        AppEvents appEvents = ipEventService.getAppEvents("appKey-3876347");
+        AppEventsSummary appEvents = ipEventService.getAppEvents("appKey-3876347");
         assertEquals(3, appEvents.getCount());
 
         assertEquals(2, appEvents.getGoodIps().size());

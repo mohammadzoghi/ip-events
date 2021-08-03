@@ -1,7 +1,7 @@
 package com.mohammad.ipevents.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mohammad.ipevents.model.AppEvents;
+import com.mohammad.ipevents.model.AppEventsSummary;
 import com.mohammad.ipevents.model.IpEvents;
 import com.mohammad.ipevents.service.IpEventService;
 import org.junit.jupiter.api.Test;
@@ -12,6 +12,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -32,14 +33,14 @@ public class IpEventControllerTest {
     IpEventService ipEventService;
 
     @Test
-    void addEventContentTypeTest() throws Exception {
+    void addEventUnsupportedContentTypeTest() throws Exception {
         mockMvc.perform(post("/events").contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isUnsupportedMediaType());
     }
 
     @Test
-    void addEventMethodTest() throws Exception {
+    void addEventUnsupportedHttpMethodTest() throws Exception {
         mockMvc.perform(get("/events").contentType(MediaType.APPLICATION_OCTET_STREAM))
                 .andDo(print())
                 .andExpect(status().isMethodNotAllowed());
@@ -49,13 +50,13 @@ public class IpEventControllerTest {
     }
 
     @Test
-    void getAppIpsTest() throws Exception {
+    void getAppEventsSummarySuccessTest() throws Exception {
         Set<String> goodIps = new HashSet<>(Arrays.asList("54.45.72.139", "54.45.72.129", "54.45.72.137"));
         Set<String> badIps = new HashSet<>(Arrays.asList("116.185.111.50", "21.101.201.155"));
-        AppEvents events = new AppEvents(50, goodIps, badIps);
-        String responseJson = new ObjectMapper().writeValueAsString(events);
+        AppEventsSummary appEventsSummary = new AppEventsSummary(50, goodIps, badIps);
+        String responseJson = new ObjectMapper().writeValueAsString(appEventsSummary);
 
-        when(ipEventService.getAppEvents(any(String.class))).thenReturn(events);
+        when(ipEventService.getAppEvents(any(String.class))).thenReturn(appEventsSummary);
 
         mockMvc.perform(get("/events/appId-857452").accept(MediaType.APPLICATION_JSON))
                 .andDo(print())
@@ -65,7 +66,20 @@ public class IpEventControllerTest {
     }
 
     @Test
-    void addEventTest() throws Exception {
+    void getAppEventsSummaryNotFoundTest() throws Exception {
+        AppEventsSummary appEventsSummary = new AppEventsSummary(0, Collections.emptySet(), Collections.emptySet());
+
+        when(ipEventService.getAppEvents(any(String.class))).thenReturn(appEventsSummary);
+
+        mockMvc.perform(get("/events/appId-857445").accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isNotFound());
+
+        verify(ipEventService, times(1)).getAppEvents("appId-857445");
+    }
+
+    @Test
+    void addEventSuccessTest() throws Exception {
         IpEvents.IpEvent event = IpEvents.IpEvent.newBuilder()
                 .setIp(358992283L)
                 .setAppSha256("appKey-3876347").build();
